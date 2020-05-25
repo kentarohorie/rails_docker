@@ -1,0 +1,31 @@
+version: '3'
+services:
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - '5306:3306'
+    volumes:
+      - data:/var/lib/mysql
+    command: mysqld --character-set-server=utf8mb4 --explicit_defaults_for_timestamp=true
+  nginx:
+    build: containers/nginx
+    ports:
+      - "9999:3000"
+    volumes:
+      - .:/app
+    links:
+      - web
+  web:
+    build:
+      context: .
+      dockerfile: ./containers/rails/Dockerfile.dev
+    volumes:
+      - .:/app
+    links:
+      - db
+    stdin_open: true
+    tty: true
+volumes:
+  data:

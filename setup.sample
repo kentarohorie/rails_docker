@@ -1,0 +1,26 @@
+#!/bin/bash
+set -ex
+
+cd `dirname $0`
+cd $(git rev-parse --show-toplevel)
+
+echo '== docker-compose build =='
+# docker-compose build
+
+echo '== Make directory tmp/sockets =='
+mkdir -p tmp/sockets
+
+echo '== yarn install in docker =='
+docker-compose run --rm web yarn install
+
+echo '== Drop DB =='
+docker-compose run --rm web rake db:drop
+
+echo '== Create DB =='
+docker-compose run --rm web rake db:create
+
+echo '== ridgepole apply =='
+docker-compose run --rm web ridgepole -c config/database.yml -f db/Schemafile --apply -E development
+
+echo '== exec seed =='
+docker-compose run --rm web bundle exec rails db:seed
